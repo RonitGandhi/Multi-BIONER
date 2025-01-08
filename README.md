@@ -1,62 +1,92 @@
-Project Title: Multi-Task Learning for Biomedical Named Entity Recognition (BioNER)
-with Cross-Sharing Knowledge
-Project Description
-Biomedical Named Entity Recognition (BioNER) is a crucial NLP task focused on identifying
-and categorizing biomedical entities—such as proteins, diseases, drugs, and chemicals—in
-scientific literature. Accurate BioNER is essential for enhancing information retrieval,
-supporting clinical decision-making, and advancing biomedical research. However, BioNER
-is challenging due to the diversity and overlap of biomedical entities, as well as the
-complexity of the language used in biomedical texts.
-Traditional single-task models often struggle to generalize across diTerent entity types, as
-they cannot leverage knowledge shared between tasks. This limitation can lead to lower
-performance, especially when handling overlapping domains within biomedical text.
-This project proposes a multi-task learning approach to improve BioNER by enabling crosssharing
-of knowledge between entity types. Multi-task learning allows for a single model to
-learn multiple tasks simultaneously by using a shared encoder, which captures general
-features, along with task-specific layers for recognizing each entity type. This approach is
-inspired by the research paper "Multitask Learning for Biomedical Named Entity Recognition
-with Cross-Sharing Structure," which explores the benefits of shared representations in
-BioNER.
-By applying multi-task learning with shared and task-specific layers, this project aims to
-build a model that achieves greater accuracy across diverse biomedical entities. The
-expected outcome is a BioNER model that more eTectively handles the complexities of
-biomedical language, enabling reliable information extraction for use in clinical and research
-applications.
-NLP Task: The primary NLP task is named entity recognition (NER) with a multi-task learning
-framework. By defining distinct but related tasks (e.g., recognizing proteins, diseases,
-drugs), the model can benefit from shared knowledge representations that improve
-accuracy across all entity types.
-Dataset(s):
-- Primary Datasets: The project will use biomedical datasets such as BioCreative (for
-gene/protein mentions), NCBI Disease Corpus (for disease names), BC5CDR (for
-chemicals and diseases), and GENIA (for proteins, cells, and DNA). These datasets provide
-labeled examples of various biomedical entities, which will be mapped to a standardized
-format (BIO tagging) to ensure consistency.
-- Data Preprocessing : The datasets will be tokenized, and labels aligned with tokens to
-ensure compatibility with transformer-based models. Additionally, we’ll standardize entity
-tags across datasets for consistent multi-task learning.
-Prospective Models:
-- Baseline Model : A single-task BioBERT or BERT model trained on each entity type
-separately, serving as a performance benchmark.
-- Proposed Multi-Task Model : The core architecture will consist of a shared transformerbased
-encoder (e.g., BioBERT or BERT) with task-specific heads for each entity type (e.g.,
-proteins, diseases, chemicals). Each task head is a linear classifier that predicts entity tags
-specific to that biomedical entity type.
-Plan for Training Models:
-- Training Approach : The multi-task model will be fine-tuned with a shared encoder and
-individual task heads, using cross-entropy loss for each head. The model will be trained on
-labeled data from all tasks simultaneously, shuTling between batches from each dataset to
-train each task head iteratively. The loss function will be a weighted sum of task-specific
-losses, with hyperparameter tuning to balance these losses.
-- Size of Test Set : A 10-15% split from each dataset will be reserved for the test set, ensuring
-robust evaluation.
-- Training Method : Fine-tuning will be performed using PyTorch and the Hugging Face
-Transformers library, starting with BioBERT or BERT weights.
-Team Number: 17 Team Members: Ronit Gandhi (rg1225), Vanshika Gurbani (vg460)
-Metric for Measuring Quality of Model:
-- Evaluation Metrics : Precision, Recall, and F1-score will be computed for each entity type
-to assess model performance. These metrics will allow us to measure how well the model
-generalizes across entity types and to observe improvements from the multi-task learning
-approach.
-- Comparison : We will compare the multi-task model’s performance against the singletask
-baseline to determine if cross-task knowledge sharing improves BioNER.
+
+# **Multi-Task Learning for Biomedical Named Entity Recognition (BioNER)**
+
+
+## **1. Introduction**  
+Biomedical Named Entity Recognition (BioNER) is a vital task in Natural Language Processing (NLP), aiming to identify biomedical entities such as genes, proteins, chemicals, and diseases in scientific text. This problem is challenging due to:  
+- The **diversity of entity types** and **overlapping domains**.  
+- **Context-specific terminology**, e.g., recognizing "cold" as a disease vs. temperature.  
+
+To address these challenges, we implemented:  
+1. **Single-Task Learning (STL)**: Fine-tuning BioBERT on individual datasets to predict entity labels in the IOBES schema.  
+2. **Multi-Task Learning (MTL)**: Extending BioBERT with a shared encoder and task-specific heads for knowledge sharing across datasets.  
+
+The problem was modeled as a **sequence classification task**, where each token in a sentence is assigned a label.  
+
+---
+
+## **2. Data Collection and Preprocessing**  
+
+### **2.1. Datasets**  
+We utilized publicly available BioNER corpora:  
+- **BC2GM**: Gene mentions (~20,000 labeled tokens)  
+- **BC4CHEMD**: Chemical entities (~1.1 million labeled tokens)  
+- **BC5CDR**: Chemical and disease entities (~170,000 labeled tokens)  
+- **JNLPBA**: Biomedical entities such as genes and proteins (~150,000 labeled tokens)  
+- **NCBI Disease**: Disease-specific mentions (~30,000 labeled tokens)  
+
+### **2.2. Preprocessing**  
+- Data in IOBES tagging format was cleaned and tokenized.  
+- Tokens were aligned with labels using a custom preprocessing function to support word-piece tokenization for BioBERT.  
+
+### **2.3. Data Characteristics**  
+- Datasets were **imbalanced**, with most tokens labeled as 'O' (non-entity).  
+- Entity labels such as B-GENE, I-CHEMICAL, or B-DISEASE were sparse.  
+
+---
+
+## **3. Experiments and Models**  
+
+### **3.1. Baseline and Architectures**  
+- **Baseline**: A rule-based NER system with token-matching.  
+- **Main Model**: BioBERT (v1.1) pre-trained on biomedical corpora from the HuggingFace Model Hub.  
+
+### **3.2. Model Implementation**  
+- **Single-Task Learning (STL)**: Fine-tuned BioBERT on individual datasets.  
+- **Multi-Task Learning (MTL)**: Extended BioBERT with shared weights and dataset-specific output heads.  
+
+### **3.3. Model Details**  
+- **Inputs**: Tokenized sentences with aligned IOBES labels.  
+- **Outputs**: Predicted IOBES labels.  
+- **Architecture**: 12 transformer layers with 768 hidden units each.  
+
+### **3.4. Training Details**  
+- **Fine-Tuning**: 3 epochs, learning rate of 5e-5, and batch size of 8 per GPU.  
+- **Regularization**: Weight decay (0.01) and dropout (0.1).  
+- **Evaluation**: Precision, Recall, and F1-scores.  
+
+---
+
+## **4. Results**  
+
+### **4.1. Performance Comparison**  
+#### **BC2GM Dataset**  
+- STL: F1-Score = 0.98  
+- MTL: F1-Score = 0.96  
+
+#### **NCBI Disease Dataset**  
+- STL: F1-Score = 0.99  
+- MTL: F1-Score = 0.98  
+
+The **MTL model** outperformed STL on smaller datasets like NCBI Disease due to shared learning, while STL achieved competitive results on larger datasets like BC2GM.  
+
+---
+
+## **5. Challenges**  
+1. **Token Alignment**: Aligning word-piece tokenized outputs with IOBES labels required detailed preprocessing.  
+2. **Task Imbalance**: Smaller datasets were overshadowed by larger datasets in MTL.  
+3. **Computational Costs**: MTL required significant GPU resources and training time.  
+
+---
+
+## **6. Conclusions**  
+
+### **6.1. Observations**  
+- **STL** models excel in datasets with sufficient data and unique traits.  
+- **MTL** models leverage shared learning, benefiting smaller datasets and improving overall performance metrics.  
+
+### **6.2. Future Improvements**  
+- **Data Augmentation**: Synthetic data generation for diversity.  
+- **Advanced Regularization**: Enhanced techniques to prevent overfitting.  
+- **Hyperparameter Tuning**: Optimized learning rates and batch sizes.  
+
